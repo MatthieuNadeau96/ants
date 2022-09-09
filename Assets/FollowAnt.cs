@@ -4,9 +4,16 @@ using UnityEngine;
 
 public class FollowAnt : MonoBehaviour
 {
+    public Vector3 offsetP = new Vector3(0, 2f, -1.6f);
+    public Quaternion offsetR = Quaternion.Euler(30, 0,0);
+
     public Transform target;
-    void Update()
+
+
+    void LateUpdate()
     {
-        transform.position = target.position + new Vector3(0, 4, 0);
+        transform.LookAt(target.position);
+        transform.position = target.position + offsetP;
+        //transform.rotation = target.rotation * offsetR;
     }
 }
