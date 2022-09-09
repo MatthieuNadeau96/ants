@@ -38,7 +38,9 @@ public class Ant : MonoBehaviour
 
     void Update()
     {
-        Debug.Log("Can See Food ? " + canSeeFood );
+        Debug.Log(transform.gameObject.name + " Can See Food ? -- " + canSeeFood );
+        //if (targetFood.tag == "Food Carry")
+        //    canSeeFood = false;
         HandleMovement();
         
 
@@ -87,7 +89,7 @@ public class Ant : MonoBehaviour
 
             if (rangeChecks.Length > 0)
             {
-                Debug.Log("Range Check Length = " + rangeChecks.Length);
+                Debug.Log(transform.gameObject.name + "'s Range Check Length = " + rangeChecks.Length);
                 //Transform target = rangeChecks[Random.Range(0, rangeChecks.Length)].transform;
 
                 Transform target = rangeChecks[Random.Range(0, rangeChecks.Length)].transform;
@@ -97,7 +99,7 @@ public class Ant : MonoBehaviour
                 {
                     //target.gameObject.layer = takenFoodLayer;
                     targetFood = target.gameObject;
-                    Debug.Log(" I can see gameobject -> " + targetFood.name);
+                    Debug.Log(transform.gameObject.name + " can see gameobject -> " + targetFood.name);
                 }
                 else
                     canSeeFood = false;
@@ -109,25 +111,35 @@ public class Ant : MonoBehaviour
         {
             Vector3 directionToTarget = (targetFood.transform.position - transform.position).normalized;
             float distanceToTarget = Vector3.Distance(transform.position, targetFood.transform.position);
+            Debug.Log(transform.gameObject.name + " target " + targetFood.name + "'s tag = " + targetFood.tag);
+            Debug.Log(transform.gameObject.name + " target " + targetFood.name + "'s layer  = " + targetFood.layer);
 
-            if (!Physics.Raycast(transform.position, directionToTarget, distanceToTarget, obstructionMask))
+            if(targetFood.tag == "Food Carry")
+            {
+                canSeeFood = false;
+                targetFood = null;
+            } 
+            else if (!Physics.Raycast(transform.position, directionToTarget, distanceToTarget, obstructionMask))
             {
                 desiredDirection = (targetFood.transform.position - transform.position).normalized;
-                Debug.Log("!!!!!!! Heading to -> " + desiredDirection);
+                Debug.Log(transform.gameObject.name + "!! is heading to -> " + desiredDirection);
                 canSeeFood = true;
-                Debug.Log("$$$ distance to target = " + distanceToTarget);
+                Debug.Log(transform.gameObject.name + "'s distance to target = " + distanceToTarget);
                 // try picking up the food it is close enough
                 if (distanceToTarget < foodPickupRadius)
                 {
-                    Debug.Log(">> PICKUP!");
+                    Debug.Log(transform.gameObject.name + ">> PICKedUP!");
                     canSeeFood = false;
+                    targetFood.gameObject.layer = LayerMask.NameToLayer("Food Carry");
+                    targetFood.tag = "Food Carry";
                     targetFood.transform.position = head.position;
                     targetFood.transform.parent = head;
                     targetFood = null;
                 }
             }
             else
-                canSeeFood = false;
+                canSeeFood = false; 
+
         }
     }
 }
