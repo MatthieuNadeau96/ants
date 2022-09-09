@@ -23,6 +23,11 @@ public class Ant : MonoBehaviour
     public LayerMask takenFoodLayer;
 
     public bool canSeeFood;
+    
+    private bool isWandering = false;
+    private bool isWalking = false;
+
+    private Animator animator;
 
     Vector3 position;
     Vector3 forward;
@@ -32,39 +37,67 @@ public class Ant : MonoBehaviour
 
     private void Start()
     {
-        //targetFood = GameObject.FindGameObjectWithTag("Food");
+        position = transform.position;
+        animator = GetComponent<Animator>();
+
         StartCoroutine(FOVRoutine());
     }
 
     void Update()
     {
         Debug.Log(transform.gameObject.name + " Can See Food ? -- " + canSeeFood );
-        //if (targetFood.tag == "Food Carry")
-        //    canSeeFood = false;
+
         HandleMovement();
-        
-
-
     }
 
     private void HandleMovement()
     {
-        if (!canSeeFood)
-        { 
-            // Wander around
-            dd = (dd + Random.insideUnitCircle * wanderStrength).normalized;
-            desiredDirection = new Vector3(dd.x, 0, dd.y);
+        if (isWandering == false)
+        {
+            StartCoroutine(Wander());
         }
-           
-        Vector3 desiredVelocity = desiredDirection * maxSpeed;
-        Vector3 desiredSteeringForce = (desiredVelocity - velocity) * steerStrength;
-        Vector3 acceleration = Vector3.ClampMagnitude(desiredSteeringForce, steerStrength) / 1;
+        if (isWalking == true)
+        {
+            if (!canSeeFood)
+            {
+                // Wander around
+                dd = (dd + Random.insideUnitCircle * wanderStrength).normalized;
+                desiredDirection = new Vector3(dd.x, 0, dd.y);
+                Debug.Log(transform.gameObject.name + "Changing Spot to ----- " + desiredDirection);
+            }
 
-        velocity = Vector3.ClampMagnitude(velocity + acceleration * Time.deltaTime, maxSpeed);
-        position += velocity * Time.deltaTime;
+            Vector3 desiredVelocity = desiredDirection * maxSpeed;
+            Vector3 desiredSteeringForce = (desiredVelocity - velocity) * steerStrength;
+            Vector3 acceleration = Vector3.ClampMagnitude(desiredSteeringForce, steerStrength) / 1;
 
-        float angle = Mathf.Atan2(velocity.x, velocity.z) * Mathf.Rad2Deg;
-        transform.SetPositionAndRotation(position, Quaternion.Euler(0, angle, 0));
+            velocity = Vector3.ClampMagnitude(velocity + acceleration * Time.deltaTime, maxSpeed);
+            position += velocity * Time.deltaTime;
+
+            float angle = Mathf.Atan2(velocity.x, velocity.z) * Mathf.Rad2Deg;
+            transform.SetPositionAndRotation(position, Quaternion.Euler(0, angle, 0));
+
+            animator.SetFloat("Speed", velocity.magnitude);
+        } 
+
+
+    }
+    IEnumerator Wander()
+    {
+        int walkWait = Random.Range(0, 3);
+        int walkTime = Random.Range(5, 12);
+
+        isWandering = true;
+        isWalking = true;
+        yield return new WaitForSeconds(walkTime);
+        isWalking = false;
+        if(!canSeeFood)
+        {
+            Debug.Log($"{transform.gameObject.name} waiting for {walkWait}....");
+            animator.SetFloat("Speed", 0.005f);
+            yield return new WaitForSeconds(walkWait);
+        }
+        isWandering = false;
+        // Todo add head rotation wait? i.e. look around for food
     }
 
     private IEnumerator FOVRoutine()
