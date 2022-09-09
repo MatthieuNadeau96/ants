@@ -7,6 +7,6 @@ public class FollowAnt : MonoBehaviour
     public Transform target;
     void Update()
     {
-        transform.position = target.position + new Vector3(0, 7, 0);
+        transform.position = target.position + new Vector3(0, 4, 0);
     }
 }
