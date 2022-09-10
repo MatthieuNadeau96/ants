@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 using static UnityEngine.GraphicsBuffer;
 
 public class Ant : MonoBehaviour
@@ -9,6 +10,9 @@ public class Ant : MonoBehaviour
     public Transform head;
 
     public GameObject targetFood;
+    public GameObject home;
+    public GameObject homeScent;
+    public GameObject foodScent;
 
     public float maxSpeed = 2;
     public float steerStrength = 2;
@@ -26,8 +30,12 @@ public class Ant : MonoBehaviour
     
     private bool isWandering = false;
     private bool isWalking = false;
+    private bool headingHome = false;
 
     private Animator animator;
+
+    private GameObject foodInHead;
+    [ SerializeField ] AntHill antHill;
 
     public int foodWeight = 0;
 
@@ -39,7 +47,7 @@ public class Ant : MonoBehaviour
 
     private void Start()
     {
-        position = transform.position;
+        position = home.transform.position;
         animator = GetComponent<Animator>();
 
         StartCoroutine(FOVRoutine());
@@ -54,13 +62,41 @@ public class Ant : MonoBehaviour
 
     private void HandleMovement()
     {
+        
         if (isWandering == false)
         {
             StartCoroutine(Wander());
         }
         if (isWalking == true)
         {
-            if (!canSeeFood)
+            if (headingHome == true)
+            {
+                Debug.Log($"HEADING HOME! ->-> {home.transform.position}");
+                headingHome = true;
+
+                //StartCoroutine(Home());
+                //desiredDirection = new Vector3(0, 0, 0);
+                //Vector3 directionToTarget = (home.transform.position - transform.position).normalized;
+                //float distanceToTarget = Vector3.Distance(transform.position, home.transform.position);
+
+                float distanceToHome = Vector3.Distance(transform.position, home.transform.position);
+                desiredDirection = (home.transform.position - transform.position).normalized;
+
+                Debug.Log($"distance Home = {distanceToHome}");
+
+                if (distanceToHome < 0.1)
+                {
+                    // Drop Food
+                    antHill.count += 1;
+                    foodWeight = 0;
+                    headingHome = false;
+                    Destroy(foodInHead);
+                }
+
+
+
+            }
+            else if (!canSeeFood && headingHome == false)
             {
                 // Wander around
                 dd = (dd + Random.insideUnitCircle * wanderStrength).normalized;
@@ -68,17 +104,25 @@ public class Ant : MonoBehaviour
                 Debug.Log(transform.gameObject.name + "Changing Spot to ----- " + desiredDirection);
             }
 
+            Debug.Log(" ### we be moving ###");
             Vector3 desiredVelocity = desiredDirection * maxSpeed;
             Vector3 desiredSteeringForce = (desiredVelocity - velocity) * steerStrength;
             Vector3 acceleration = Vector3.ClampMagnitude(desiredSteeringForce, steerStrength) / 1;
 
             velocity = Vector3.ClampMagnitude(velocity + acceleration * Time.deltaTime, maxSpeed);
             position += velocity * Time.deltaTime;
+            Debug.Log($"velocty ->>>>>> {velocity}");
+            Debug.Log($"position ->>>>>> {velocity}");
 
             float angle = Mathf.Atan2(velocity.x, velocity.z) * Mathf.Rad2Deg;
             transform.SetPositionAndRotation(position, Quaternion.Euler(0, angle, 0));
 
+            // drop scent
+            //Instantiate(homeScent, transform.position, Quaternion.identity);
+
             animator.SetFloat("Speed", velocity.magnitude);
+
+            
         } 
 
 
@@ -104,14 +148,18 @@ public class Ant : MonoBehaviour
 
     private IEnumerator FOVRoutine()
     {
-        float delay = 0.2f;
-
-        WaitForSeconds wait = new WaitForSeconds(delay);
-
-        while (true)
+        if(foodWeight == 0)
         {
-            yield return wait;
-            HandleFood();
+
+            float delay = 0.2f;
+
+            WaitForSeconds wait = new WaitForSeconds(delay);
+            while (true)
+            {
+                yield return wait;
+                HandleFood();
+            }
+
         }
     }
 
@@ -168,6 +216,8 @@ public class Ant : MonoBehaviour
                     targetFood.gameObject.layer = LayerMask.NameToLayer("Food Carry");
                     targetFood.tag = "Food Carry";
                     foodWeight += 1;
+                    headingHome = true;
+                    foodInHead = targetFood;
                     targetFood.transform.position = head.position;
                     targetFood.transform.parent = head;
                     targetFood = null;
@@ -178,4 +228,23 @@ public class Ant : MonoBehaviour
 
         }
     }
+
+    //void HandlePheromoneSteering()
+    //{
+    //    UpdateSensor(leftSensor);
+    //    UpdateSensor(centerSensor);
+    //    UpdateSensor(rightSensor);
+
+    //    if(centerSensore.value) > int.MaxValue(leftSensor.value, rightSensor.value)) {
+    //        desiredDirection = forward;
+    //    }
+    //}
+
+    //void UpdateSensor(Sensor sensor)
+    //{
+    //    //Update sensore position based on ant's position and direction
+    //    sensor.UpdatePosition(position, forward);
+    //    sensor.value = 0;
+    //}
+
 }
