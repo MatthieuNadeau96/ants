@@ -50,7 +50,14 @@ public class Ant : MonoBehaviour
         position = home.transform.position;
         animator = GetComponent<Animator>();
 
-        StartCoroutine(FOVRoutine());
+    }
+
+    private void FixedUpdate()
+    {
+        if(foodWeight == 0)
+        {
+            HandleFood();
+        }
     }
 
     void Update()
@@ -90,6 +97,7 @@ public class Ant : MonoBehaviour
                     antHill.count += 1;
                     foodWeight = 0;
                     headingHome = false;
+                    Debug.Log("Drop Food");
                     Destroy(foodInHead);
                 }
 
@@ -129,7 +137,7 @@ public class Ant : MonoBehaviour
     }
     IEnumerator Wander()
     {
-        int walkWait = Random.Range(0, 3);
+        int walkWait = 0;//Random.Range(0, 3);
         int walkTime = Random.Range(5, 12);
 
         isWandering = true;
@@ -150,6 +158,7 @@ public class Ant : MonoBehaviour
     {
         if(foodWeight == 0)
         {
+            Debug.Log("FoodWeight == 0");
 
             float delay = 0.2f;
 
@@ -157,7 +166,6 @@ public class Ant : MonoBehaviour
             while (true)
             {
                 yield return wait;
-                HandleFood();
             }
 
         }
