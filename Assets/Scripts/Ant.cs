@@ -52,19 +52,16 @@ public class Ant : MonoBehaviour
 
     }
 
-    private void FixedUpdate()
-    {
-        if(foodWeight == 0)
-        {
-            HandleFood();
-        }
-    }
-
     void Update()
     {
         Debug.Log(transform.gameObject.name + " Can See Food ? -- " + canSeeFood );
 
         HandleMovement();
+
+        if (foodWeight == 0)
+        {
+            HandleFood();
+        }
     }
 
     private void HandleMovement()
@@ -152,23 +149,6 @@ public class Ant : MonoBehaviour
         }
         isWandering = false;
         // Todo add head rotation wait? i.e. look around for food
-    }
-
-    private IEnumerator FOVRoutine()
-    {
-        if(foodWeight == 0)
-        {
-            Debug.Log("FoodWeight == 0");
-
-            float delay = 0.2f;
-
-            WaitForSeconds wait = new WaitForSeconds(delay);
-            while (true)
-            {
-                yield return wait;
-            }
-
-        }
     }
 
     void HandleFood()
