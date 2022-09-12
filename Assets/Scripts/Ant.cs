@@ -49,6 +49,8 @@ public class Ant : MonoBehaviour
     {
         position = home.transform.position;
         animator = GetComponent<Animator>();
+        // drop scent
+        StartCoroutine(DropScent());
 
     }
 
@@ -122,8 +124,6 @@ public class Ant : MonoBehaviour
             float angle = Mathf.Atan2(velocity.x, velocity.z) * Mathf.Rad2Deg;
             transform.SetPositionAndRotation(position, Quaternion.Euler(0, angle, 0));
 
-            // drop scent
-            //Instantiate(homeScent, transform.position, Quaternion.identity);
 
             animator.SetFloat("Speed", velocity.magnitude);
 
@@ -149,6 +149,40 @@ public class Ant : MonoBehaviour
         }
         isWandering = false;
         // Todo add head rotation wait? i.e. look around for food
+    }
+
+    private IEnumerator FOVRoutine()
+    {
+        {
+
+            float delay = 0.2f;
+
+            WaitForSeconds wait = new WaitForSeconds(delay);
+            while (true)
+            {
+                yield return wait;
+                //HandleVision();
+            }
+
+        }
+    }
+
+    private IEnumerator DropScent()
+    {
+        float waitTime = 1f;
+        while(!headingHome)
+        {
+            yield return new WaitForSeconds(waitTime);
+            Debug.Log($"Poop BLUE");
+            Instantiate(homeScent, transform.position, Quaternion.identity);
+        }
+        while(headingHome)
+        {
+            yield return new WaitForSeconds(waitTime);
+            Debug.Log($"Poop RED");
+            Instantiate(foodScent, transform.position, Quaternion.identity);
+        }
+        yield return DropScent();
     }
 
     void HandleFood()
